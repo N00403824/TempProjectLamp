@@ -1,5 +1,5 @@
 <?
-
+// Brendan M. Lowe
  require_once ("../inc/climate.php");
 
  //No Session is created for this page because the Remote Pi's will be 'phoning home' to input.php to upload data 

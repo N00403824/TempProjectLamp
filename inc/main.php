@@ -1,4 +1,6 @@
 <?
+// Brendan M. Lowe
+
  // Must be created and edited for each LAMP instance
  require_once"/home/loweb/password.php";
  /* Information in password.php
