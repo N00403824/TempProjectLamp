@@ -10,7 +10,7 @@ app = Flask(__name__)
 @app.route("/")
 def getInfo():
 
-    conn = sqlite3.connect('climate_info.db')
+    conn = sqlite3.connect('/home/pi/climate/climate_info.db')
 
     # This enables column access by name: row['column_name']
     conn.row_factory = sqlite3.Row
