@@ -130,7 +130,85 @@ function insertData($climate){
 }
  
 function getData($climate){
+
+ global $climate_db;
+ global $device_db;
+
+ //Open MySQL Connection inorder to get last data point for a device.
+ $database = sql_dmca();
+
+
+ $climate = arrayEscape($climate, $database);
+ 
+ $climate_results['building'] = $climate['building'];
+ $climate_results['room'] = $climate['room'];
+ 
+ $climate_results['error'] = "";
+
+ // Statement Where there's a stop and start time
+ 
+ if( $climate['startTime']  &&  $climate['stopTime'] ){
+
+ 	 $climate_results['statement'] = "SELECT time, temp AS tempC, (temp*9/5 + 32) AS tempF
+										FROM $climate_db
+										JOIN $device_db
+											ON $climate_db.location_id=$device_db.id
+										WHERE $device_db.building= '$climate[building]' 
+											AND $device_db.room= '$climate[room]'
+											AND time >= '$climate[startTime]'
+											AND time <= '$climate[stopTime]'";
 	
+ }
+    
+ // Statement Where there's no stop time and a start time
+ elseif( $climate['startTime'] && !$climate['stopTime']){
+ 
+ 	$climate_results['statement'] = "SELECT time, temp AS tempC, (temp*9/5 + 32) AS tempF
+										FROM $climate_db
+										JOIN $device_db
+											ON $climate_db.location_id=$device_db.id
+										WHERE $device_db.building= '$climate[building]' 
+											AND $device_db.room= '$climate[room]'
+											AND time >= '$climate[startTime]'";    
+ } 
+ // Statement Where there's a stop time and no start time
+ elseif(!$climate['startTime'] && $climate['stopTime']){
+ 	
+ 	$climate_results['statement'] = "SELECT time, temp AS tempC, (temp*9/5 + 32) AS tempF
+										FROM $climate_db
+										JOIN $device_db
+											ON $climate_db.location_id=$device_db.id
+										WHERE $device_db.building= '$climate[building]' 
+											AND $device_db.room= '$climate[room]'
+	 										AND time <= '$climate[stopTime]'";    
+ }
+ // Statement Where there's no stop and start time
+ else{
+ 
+ 	$climate_results['statement'] = "SELECT time, temp AS tempC, (temp*9/5 + 32) AS tempF
+										FROM $climate_db
+										JOIN $device_db
+											ON $climate_db.location_id=$device_db.id
+										WHERE $device_db.building= '$climate[building]' 
+											AND $device_db.room= '$climate[room]'";
+ }
+
+ $climate_results['info'] = $database->query($climate_results['statement']);
+ 
+  $climate_results['error'] .= $database->error;
+ if($climate_results['error']){
+ 		
+ 	$climate_results['results'] .= "Climate Insertion Error $climate[building] $climate[room] $climate[timestamp]";
+ }
+ else{
+	$climate_results['results'] .= "Climate Data for $climate[building] $climate[room] $climate[startTime] between $climate[stopTime]";
+ }
+ 
+
+ $database->close();
+
+ return $climate_results;
+
 	
 	
 }
