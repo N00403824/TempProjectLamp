@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sqlite3
 import time
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, redirect, url_for
 import json
 import urllib
 
@@ -53,22 +53,97 @@ def getInfo():
 
     return json.dumps(climate_info)
 
+@app.route('/admin', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+       user_info = { "username": request.form['username'],
+                     "password": request.form['password']  }
+
+       # Check the username and password.
+       if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+          error = 'Invalid Credentials. Please try again.'
+       else:
+          return redirect(url_for('piInfo'))
+    
+    return render_template('login.html', error=error)	
+
+@app.route('/info', methods=['GET', 'POST'])
+def piInfo():
+
+    conn = sqlite3.connect('/home/pi/climate/climate_info.db')
+
+    # This enables column access by name: row['column_name']
+    conn.row_factory = sqlite3.Row
+
+    curs = conn.cursor()   
+
+    if request.method == 'POST':
+
+         error = None
+
+         statement = None
+
+         #Update location data
+         if request.form.has_key('inputLocation'):
+
+             statement = "Update device SET building ='%s', room = '%s'  WHERE id='1'"  % (request.form['building'], request.form['room'])
+        
+	     #else:
+         #Update NWS data elif
+         elif request.form.has_key('inputGPS'):
+
+             statement = "Update device SET postal_code ='%s', latitude ='%s', longitude ='%s'  WHERE id='1'"  % (request.form['zip'], request.form['latitude'], request.form['longitude'])
+
+
+         #Update LAMP data 
+         elif request.form.has_key('inputLamp'):
+
+              statement = "Update device SET lamp ='%s' WHERE id='1'"  % request.form['lamp']
+
+         #Clear all climate data from the Pi Database.
+         elif request.form.has_key('inputClearClimate'):
+              if request.form.has_key('deleteClimate'):
+                 if request.form.has_key('deleteClimate'):
+                    if request.form['deleteClimate'] == 'true':
+                       statement  = "DELETE FROM climate"
+         else:
+             statement = None
+
+         #Update database
+         output = {"input": request.form, "statement": statement, "error": error}
+
+         # If statement is not null the local database will be updated with the new information
+         if statement != None:
+            curs.execute("%s" % statement)
+            output["results"] = "Statement Happened"
+
+
+            #Close the SQL Connection
+            conn.commit()
+            conn.close()
+
+         #Update password data
+
+
+
+
+         return json.dumps(output)
 	
+    else:
+        # Retrieves the building information and creates the main output
+        curs.execute("SELECT building, room, coord_x, coord_y, coord_z, lamp, postal_code, latitude, longitude FROM device LIMIT 1")
+        pi_info = curs.fetchone()
+
+        information = dict(pi_info)
+
+    #Close the SQL Connection
+    conn.commit()
+    conn.close()
+
+    return render_template('info.html', **information)
 
 
-@app.route('/request')
-def get_test():
-    username = request.args.get('username')
-    password = request.args.get('password')
-    return jsonify(username=request.args.get('username'),
-                   password=request.args.get('password'),
-                   id=42)
-
-@app.route('/location')
-def get_current_user():
-    return jsonify(username="admin",
-                   email="admin@localhost",
-                   id=42)
 
 
 if __name__ == "__main__":

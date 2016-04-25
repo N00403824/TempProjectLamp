@@ -148,6 +148,8 @@ function getData($climate){
  // Statement Where there's a stop and start time
  
  if( $climate['startTime']  &&  $climate['stopTime'] ){
+ 	
+	$climate_results['results'] .= "Climate Data for $climate[building] $climate[room] $climate[startTime] between $climate[stopTime]";
 
  	 $climate_results['statement'] = "SELECT time, temp AS tempC, (temp*9/5 + 32) AS tempF
 										FROM $climate_db
@@ -162,6 +164,8 @@ function getData($climate){
     
  // Statement Where there's no stop time and a start time
  elseif( $climate['startTime'] && !$climate['stopTime']){
+ 	
+	$climate_results['results'] .= "Climate Data for $climate[building] $climate[room] after $climate[startTime]";
  
  	$climate_results['statement'] = "SELECT time, temp AS tempC, (temp*9/5 + 32) AS tempF
 										FROM $climate_db
@@ -174,6 +178,8 @@ function getData($climate){
  // Statement Where there's a stop time and no start time
  elseif(!$climate['startTime'] && $climate['stopTime']){
  	
+	$climate_results['results'] .= "Climate Data for $climate[building] $climate[room] before $climate[stopTime]";
+ 	
  	$climate_results['statement'] = "SELECT time, temp AS tempC, (temp*9/5 + 32) AS tempF
 										FROM $climate_db
 										JOIN $device_db
@@ -184,6 +190,8 @@ function getData($climate){
  }
  // Statement Where there's no stop and start time
  else{
+ 	
+	$climate_results['results'] .= "Climate Data for $climate[building] $climate[room]";
  
  	$climate_results['statement'] = "SELECT time, temp AS tempC, (temp*9/5 + 32) AS tempF
 										FROM $climate_db
@@ -198,10 +206,7 @@ function getData($climate){
   $climate_results['error'] .= $database->error;
  if($climate_results['error']){
  		
- 	$climate_results['results'] .= "Climate Insertion Error $climate[building] $climate[room] $climate[timestamp]";
- }
- else{
-	$climate_results['results'] .= "Climate Data for $climate[building] $climate[room] $climate[startTime] between $climate[stopTime]";
+ 	$climate_results['results'] = "Climate Insertion Error $climate[building] $climate[room]";
  }
  
 

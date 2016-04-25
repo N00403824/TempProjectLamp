@@ -27,9 +27,7 @@ def getTemp(devicefile):
 
         # if the status is ok, get the temperature from line 2
         if status=="YES":
-            #tempstr= lines[1][-6:-1]
-	        tempstr = lines[1].split("=",1)[1]
-            #tempstr = tempstr.split("=",1)[1]
+            tempstr= lines[1][-6:-1]
             tempvalue=float(tempstr)/1000
             print tempvalue
             return tempvalue
@@ -102,12 +100,12 @@ def run():
         # get the temperature from the device file
         temperature = getTemp(w1devicefile)
         
-        #cron = CronTab(user='root')
+        cron = CronTab(user='root')
         # check if cronjob exists
-        #if not cron.render():    
-        #    createJob()
-        #else:
-        logTemp(temperature)
+        if not cron.render():    
+            createJob()
+        else:
+            logTemp(temperature)
         return 0
 
 run()

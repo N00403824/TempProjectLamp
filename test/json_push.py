@@ -15,15 +15,15 @@ def json_push():
 	conn.row_factory = sqlite3.Row
 	curs = conn.cursor()
 
-	# Retrieves the building information and creates the main output
-	curs.execute("SELECT building, room, coord_x, coord_y, coord_z FROM device LIMIT 1")
+	# Retrieves the building information and creates the main output  
+	curs.execute("SELECT building, room, coord_x, coord_y, coord_z, lamp, postal_code, latitude, longitude FROM device LIMIT 1")
 	building = curs.fetchone()
 
 	climate_info = dict(building)
 
 
 	#Obtain Infomation from Server for lastData
-	last_statement = "http://cs.newpaltz.edu/~loweb/pi/api/input.php?lastData=true&building=%s&room=%s" % (climate_info["building"], climate_info["room"])   
+	last_statement = "%s?lastData=true&building=%s&room=%s" % (climate_info["lamp"], climate_info["building"], climate_info["room"])   
 	last_data_request = requests.get(last_statement)
 	last_data = last_data_request.json()
 	lastData = last_data["info"]["lastData"]
@@ -55,8 +55,9 @@ def json_push():
 	print test_json
 
 	# Create the JSON Post to Push to the LAMP server
-	post_location = "http://cs.newpaltz.edu/~loweb/pi/"
-	post_request = requests.post(post_location + "api/input.php", data=test_json)
+	#post_location = "http://cs.newpaltz.edu/~loweb/pi/"
+	post_location = "%s" % climate_info["lamp"]
+	post_request = requests.post(post_location, data=test_json)
 	print "URL Status: " + str(post_request.status_code)
 	print "URL Response: " + post_request.text
 
